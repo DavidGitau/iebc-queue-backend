@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+
 class PollingStation(models.Model):
     station_id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
     name = models.CharField(max_length=100)                                                 #The name of polling station
@@ -44,14 +45,14 @@ class UserProfile(models.Model):
     )
 
     # Fields/Attributes
-    age = models.IntegerField()                                                             #Age
+    age = models.IntegerField(null=True)                                                             #Age
+    dob = models.DateField(null=True)
     first_name = models.CharField(max_length=50)                                            #First name
     gender = models.CharField('gender', max_length=1, choices=GENDER)                       #Gender 
-    id_number = models.IntegerField(primary_key=True)                                       #The national ID number used as the primary key     
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')              #Picture of user
+    id_number = models.IntegerField(primary_key=True)                                       #The national ID number used as the primary key 
     last_name = models.CharField(max_length=50)                                             #Last name
     occupation = models.CharField('occupation', max_length=1, choices=OCCUPATION)           #The occupation of user - casual or formal
-    special_condition = models.CharField('condition', max_length=1, choices=CONDITION)      #Any special condition such as expectant mothers
+    special_condition = models.CharField('condition', max_length=1, choices=CONDITION, null=True)      #Any special condition such as expectant mothers
     user = models.OneToOneField(User, on_delete=models.CASCADE)                             #Used for authetication - django user model
 
     def __str__(self):

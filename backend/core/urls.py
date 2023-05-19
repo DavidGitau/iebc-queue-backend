@@ -3,7 +3,11 @@ from .models import *
 from .serializers import *
 from .views import *
 
-urlpatterns = [
+urlpatterns = [    
+    # path('register/', CreateUserView.as_view(), name='register'),
+    path('login/', CreateTokenView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('profile/', ProfileAPIView.as_view(), name='profile'),
     path(
         'userprofiles',
         CustomList.as_view(

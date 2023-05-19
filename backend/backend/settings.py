@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     "core",
 ]
@@ -130,6 +131,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES':
     ['rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly']
 }
@@ -137,5 +141,14 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+    # Add other trusted origins if needed
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
