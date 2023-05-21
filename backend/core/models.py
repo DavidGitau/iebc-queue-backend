@@ -2,29 +2,58 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-
-class PollingStation(models.Model):
-    station_id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
+class County(models.Model):
+    id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
     name = models.CharField(max_length=100)                                                 #The name of polling station
-    location = models.CharField(max_length=100)                                             #The center the station is located
+
+    def __str__(self):
+        return self.name
+
+class Constituency(models.Model):
+    id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
+    name = models.CharField(max_length=100)                                                 #The name of polling station
+    county = models.ForeignKey(County, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return self.name
+    
+class Ward(models.Model):
+    id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
+    name = models.CharField(max_length=100)                                                 #The name of polling station
+    constituency = models.ForeignKey(Constituency, on_delete=models.CASCADE, null=True)                                        #Constituency
+
+    def __str__(self):
+        return self.name
+    
+class PollingCenter(models.Model):
+    id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
+    name = models.CharField(max_length=100)                                                  #The list of voters registered in the station
+    ward = models.ForeignKey(Ward, on_delete=models.CASCADE, null=True)                                                #Ward
+
+    def __str__(self):
+        return self.name
+    
+class PollingStation(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)                                      #The ID of the station as primary key
+    name = models.CharField(max_length=100)                                                #The list of voters registered in the station
+    center = models.ForeignKey(PollingCenter, on_delete=models.CASCADE, null=True)                                                #Ward    
     voters = models.ManyToManyField('Voter')                                                #The list of voters registered in the station
-    scounty = models.CharField(max_length=100)                                              #County
-    sconstituency = models.CharField(max_length=100)                                        #Constituency
-    sward = models.CharField(max_length=100)                                                #Ward
+    voter_no = models.IntegerField(default=1)
 
     def __str__(self):
         return self.name
     
 
 class Queue(models.Model):
-    name = models.CharField(max_length=100)                                                 #Queue name
-    length = models.IntegerField()                                                          #Numbers of voters in queue
-    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE)                 #The polling station queue is located in
-    queue_id = models.IntegerField(primary_key=True)                                        #The ID of the queue as primary key
-    voters = models.ManyToManyField('Voter')                                                #List of all voters in the queue
+    name = models.CharField(max_length=100)
+    length = models.IntegerField()
+    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
+    id = models.IntegerField(primary_key=True)
+    voters = models.ManyToManyField('Voter', related_name='queues')  # Updated related_name argument
 
     def __str__(self):
         return self.name
+
     
 
 class UserProfile(models.Model):
@@ -61,14 +90,16 @@ class UserProfile(models.Model):
 
 class Voter(models.Model):
     profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)                 #Connected to a single registered user
-    voter_id = models.IntegerField(primary_key=True)                                        #The voter ID number used as the primary key 
+    id = models.IntegerField(primary_key=True)                                        #The voter ID number used as the primary key 
     service_time = models.FloatField(default=0.00)                                          #Predicted service time
     waiting_time = models.FloatField(default=0.00)                                          #Predicted time on queue
     ticket_no = models.CharField(max_length=500, null=True)                                 #Queue Ticket number
     voted = models.BooleanField(default=False)                                              #Has voted or not. True or False
-
+    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
+    queue = models.ForeignKey('Queue', on_delete=models.CASCADE, null=True)
+    
     def __str__(self):
-        return f'{self.profile} - {self.voter_id}' 
+        return f'{self.profile} - {self.id}' 
 
 
 class Vote(models.Model):
@@ -77,3 +108,4 @@ class Vote(models.Model):
 
     def __str__(self):
         return f'{self.voter} - {self.vote_id}' 
+    

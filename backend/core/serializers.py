@@ -12,6 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return get_user_model().objects.create_user(**validated_data)
 
+
 class AuthTokenSerializer(serializers.Serializer):
     username = serializers.CharField(
         style={'input_type': 'text'},
@@ -40,32 +41,70 @@ class AuthTokenSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    # id_number = serializers.IntegerField(read_only=True)
-    # gender = serializers.ChoiceField(choices=UserProfile.GENDER)
     user = UserSerializer()
 
     class Meta:
         model = UserProfile
         fields = '__all__'
 
+
+class CountySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = County
+        fields = '__all__'
+
+
+class ConstituencySerializer(serializers.ModelSerializer):
+    county = CountySerializer()
+
+    class Meta:
+        model = Constituency
+        fields = '__all__'
+
+
+class WardSerializer(serializers.ModelSerializer):
+    constituency = ConstituencySerializer()
+
+    class Meta:
+        model = Ward
+        fields = '__all__'
+
+
+class PollingCenterSerializer(serializers.ModelSerializer):
+    ward = WardSerializer()
+
+    class Meta:
+        model = PollingCenter
+        fields = '__all__'
+
+
+
+class PollingStationSerializer(serializers.ModelSerializer):
+    center = PollingCenterSerializer()
+    # voters = VoterSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PollingStation
+        fields = '__all__'
+
 class VoterSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
+    station = PollingStationSerializer()
+    # queue = QueueSerializer()
 
     class Meta:
         model = Voter
         fields = '__all__'
 
-class PollingStationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PollingStation
-        fields = '__all__'
 
 class QueueSerializer(serializers.ModelSerializer):
     station = PollingStationSerializer()
+    voters = VoterSerializer(many=True, read_only=True)
 
     class Meta:
         model = Queue
         fields = '__all__'
+
 
 class VoteSerializer(serializers.ModelSerializer):
     voter = VoterSerializer()
@@ -73,4 +112,3 @@ class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
         fields = '__all__'
-

@@ -1,82 +1,34 @@
 from django.urls import path
-from .models import *
-from .serializers import *
 from .views import *
 
-urlpatterns = [    
-    # path('register/', CreateUserView.as_view(), name='register'),
+app_name = 'api'
+
+urlpatterns = [
     path('login/', CreateTokenView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('profile/', ProfileAPIView.as_view(), name='profile'),
-    path(
-        'userprofiles',
-        CustomList.as_view(
-            queryset=UserProfile.objects.all(),
-            serializer_class=UserProfileSerializer
-        )
-    ),
-    path(
-        'voters',
-        CustomList.as_view(
-            queryset=Voter.objects.all(),
-            serializer_class=VoterSerializer
-        )
-    ),
-    path(
-        'votes',
-        CustomList.as_view(
-            queryset=Vote.objects.all(),
-            serializer_class=VoteSerializer
-        )
-    ),
-    path(
-        'queues',
-        CustomList.as_view(
-            queryset=Queue.objects.all(),
-            serializer_class=QueueSerializer
-        )
-    ),
-    path(
-        'stations',
-        CustomList.as_view(
-            queryset=PollingStation.objects.all(),
-            serializer_class=PollingStationSerializer
-        )
-    ),
 
-    # path(
-    #     'userprofiles',
-    #     CustomList.as_view(
-    #         queryset=UserProfile.objects.all(),
-    #         serializer_class=UserProfileSerializer
-    #     )
-    # ),
-    # path(
-    #     'voters',
-    #     CustomList.as_view(
-    #         queryset=Voter.objects.all(),
-    #         serializer_class=VoterSerializer
-    #     )
-    # ),
-    # path(
-    #     'votes',
-    #     CustomList.as_view(
-    #         queryset=Vote.objects.all(),
-    #         serializer_class=VoteSerializer
-    #     )
-    # ),
-    # path(
-    #     'queues',
-    #     CustomList.as_view(
-    #         queryset=Queue.objects.all(),
-    #         serializer_class=QueueSerializer
-    #     )
-    # ),
-    path(
-        'station/<slug:pk>',
-        CustomDetail.as_view(
-            queryset=PollingStation.objects.all(),
-            serializer_class=PollingStationSerializer
-        )
-    ),
+    path('counties/', CountyList.as_view(), name='county-list'),
+    path('counties/<int:pk>/', CountyDetail.as_view(), name='county-detail'),
+
+    path('constituencies/', ConstituencyList.as_view(), name='constituency-list'),
+    path('constituencies/<int:pk>/', ConstituencyDetail.as_view(), name='constituency-detail'),
+
+    path('wards/', WardList.as_view(), name='ward-list'),
+    path('wards/<int:pk>/', WardDetail.as_view(), name='ward-detail'),
+
+    path('polling-centers/', PollingCenterList.as_view(), name='polling-center-list'),
+    path('polling-centers/<int:pk>/', PollingCenterDetail.as_view(), name='polling-center-detail'),
+
+    path('polling-stations/', PollingStationList.as_view(), name='polling-station-list'),
+    path('polling-stations/<int:pk>/', PollingStationDetail.as_view(), name='polling-station-detail'),
+
+    path('queues/', QueueList.as_view(), name='queue-list'),
+    path('queues/<int:pk>/', QueueDetail.as_view(), name='queue-detail'),
+
+    path('voters/', VoterList.as_view(), name='voter-list'),
+    path('voters/<int:pk>/', VoterDetail.as_view(), name='voter-detail'),
+
+    path('votes/', VoteList.as_view(), name='vote-list'),
+    path('votes/<int:pk>/', VoteDetail.as_view(), name='vote-detail'),
 ]

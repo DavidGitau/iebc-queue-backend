@@ -7,6 +7,10 @@ admin.site.register(
         Vote,
         Voter,
         PollingStation,
-        Queue
+        Queue,
+        Ward,
+        PollingCenter,
+        Constituency,
+        County
     ]
 )
