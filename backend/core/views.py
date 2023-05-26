@@ -171,10 +171,16 @@ class CreateTokenView(ObtainAuthToken):
         print(user,request.data['group'])
         
         # Handle different account types
-        if user.is_staff:
+        if user.is_superuser:
             if request.data['group'] == 'admin':
                 # Perform user-specific authentication logic
                 return Response({'token': token.key, 'account_type': 'admin'})
+            else:
+                return Response({'detail': 'Invalid account type'}, status=400)
+        elif user.is_staff:
+            if request.data['group'] == 'admin':
+                # Perform user-specific authentication logic
+                return Response({'token': token.key, 'account_type': 'staff'})
             else:
                 return Response({'detail': 'Invalid account type'}, status=400)
         else:
@@ -186,80 +192,110 @@ class CreateTokenView(ObtainAuthToken):
 
 
 class CountyList(generics.ListCreateAPIView):
-    queryset = County.objects.all()
+    queryset = County.objects.all()[:50]
     serializer_class = CountySerializer
 
 
 class CountyDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = County.objects.all()
+    queryset = County.objects.all()[:50]
     serializer_class = CountySerializer
 
 
 class ConstituencyList(generics.ListCreateAPIView):
-    queryset = Constituency.objects.all()
+    queryset = Constituency.objects.all()[:50]
     serializer_class = ConstituencySerializer
 
 
 class ConstituencyDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Constituency.objects.all()
+    queryset = Constituency.objects.all()[:50]
     serializer_class = ConstituencySerializer
 
 
 class WardList(generics.ListCreateAPIView):
-    queryset = Ward.objects.all()
+    queryset = Ward.objects.all()[:50]
     serializer_class = WardSerializer
 
 
 class WardDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Ward.objects.all()
+    queryset = Ward.objects.all()[:50]
     serializer_class = WardSerializer
 
 
 class PollingCenterList(generics.ListCreateAPIView):
-    queryset = PollingCenter.objects.all()
+    queryset = PollingCenter.objects.all()[:50]
     serializer_class = PollingCenterSerializer
 
 
 class PollingCenterDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PollingCenter.objects.all()
+    queryset = PollingCenter.objects.all()[:50]
     serializer_class = PollingCenterSerializer
 
 
 class PollingStationList(generics.ListCreateAPIView):
-    queryset = PollingStation.objects.all()
+    queryset = PollingStation.objects.all()[:50]
     serializer_class = PollingStationSerializer
 
 
 class PollingStationDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PollingStation.objects.all()
+    queryset = PollingStation.objects.all()[:50]
     serializer_class = PollingStationSerializer
 
 
 class QueueList(generics.ListCreateAPIView):
-    queryset = Queue.objects.all()
+    queryset = Queue.objects.all()[:50]
     serializer_class = QueueSerializer
 
 
 class QueueDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Queue.objects.all()
+    queryset = Queue.objects.all()[:50]
     serializer_class = QueueSerializer
 
 
 class VoterList(generics.ListCreateAPIView):
-    queryset = Voter.objects.all()
+    queryset = Voter.objects.all()[:50]
     serializer_class = VoterSerializer
 
 
 class VoterDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Voter.objects.all()
+    queryset = Voter.objects.all()[:50]
     serializer_class = VoterSerializer
 
 
+class StaffList(generics.ListCreateAPIView):
+    queryset = Staff.objects.all()[:50]
+    serializer_class = StaffSerializer
+
+
+class StaffDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Staff.objects.all()[:50]
+    serializer_class = StaffSerializer
+
+
+class TicketList(generics.ListCreateAPIView):
+    queryset = Ticket.objects.all()[:50]
+    serializer_class = TicketSerializer
+
+
+class TicketDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Ticket.objects.all()[:50]
+    serializer_class = TicketSerializer
+
+
+class TimeSlotList(generics.ListCreateAPIView):
+    queryset = TimeSlot.objects.all()[:50]
+    serializer_class = TimeSlotSerializer
+
+
+class TimeSlotDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = TimeSlot.objects.all()[:50]
+    serializer_class = TimeSlotSerializer
+
+
 class VoteList(generics.ListCreateAPIView):
-    queryset = Vote.objects.all()
+    queryset = Vote.objects.all()[:50]
     serializer_class = VoteSerializer
 
 
 class VoteDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Vote.objects.all()
+    queryset = Vote.objects.all()[:50]
     serializer_class = VoteSerializer

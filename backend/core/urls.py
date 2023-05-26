@@ -29,6 +29,15 @@ urlpatterns = [
     path('voters/', VoterList.as_view(), name='voter-list'),
     path('voters/<int:pk>/', VoterDetail.as_view(), name='voter-detail'),
 
+    path('staffs/', StaffList.as_view(), name='staff-list'),
+    path('staffs/<int:pk>/', StaffDetail.as_view(), name='staff-detail'),
+
+    path('tickets/', TicketList.as_view(), name='ticket-list'),
+    path('tickets/<int:pk>/', TicketDetail.as_view(), name='ticket-detail'),
+
+    path('time-slots/', TimeSlotList.as_view(), name='time-slot-list'),
+    path('time-slots/<int:pk>/', TimeSlotDetail.as_view(), name='time-slot-detail'),
+
     path('votes/', VoteList.as_view(), name='vote-list'),
     path('votes/<int:pk>/', VoteDetail.as_view(), name='vote-detail'),
 ]

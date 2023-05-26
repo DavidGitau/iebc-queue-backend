@@ -46,10 +46,9 @@ class PollingStation(models.Model):
 
 class Queue(models.Model):
     name = models.CharField(max_length=100)
-    length = models.IntegerField()
     station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
     id = models.IntegerField(primary_key=True)
-    voters = models.ManyToManyField('Voter', related_name='queues')  # Updated related_name argument
+    tickets = models.ManyToManyField('Ticket', related_name='queues')  # Updated related_name argument
 
     def __str__(self):
         return self.name
@@ -80,7 +79,7 @@ class UserProfile(models.Model):
     gender = models.CharField('gender', max_length=1, choices=GENDER)                       #Gender 
     id_number = models.IntegerField(primary_key=True)                                       #The national ID number used as the primary key 
     last_name = models.CharField(max_length=50)                                             #Last name
-    occupation = models.CharField('occupation', max_length=1, choices=OCCUPATION)           #The occupation of user - casual or formal
+    occupation = models.CharField('occupation', max_length=1, choices=OCCUPATION, null=True)           #The occupation of user - casual or formal
     special_condition = models.CharField('condition', max_length=1, choices=CONDITION, null=True)      #Any special condition such as expectant mothers
     user = models.OneToOneField(User, on_delete=models.CASCADE)                             #Used for authetication - django user model
 
@@ -92,20 +91,45 @@ class Voter(models.Model):
     profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)                 #Connected to a single registered user
     id = models.IntegerField(primary_key=True)                                        #The voter ID number used as the primary key 
     service_time = models.FloatField(default=0.00)                                          #Predicted service time
-    waiting_time = models.FloatField(default=0.00)                                          #Predicted time on queue
-    ticket_no = models.CharField(max_length=500, null=True)                                 #Queue Ticket number
+    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE, null=True, related_name='ticket')                                 #Queue Ticket number
     voted = models.BooleanField(default=False)                                              #Has voted or not. True or False
-    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
-    queue = models.ForeignKey('Queue', on_delete=models.CASCADE, null=True)
+    timeslot = models.ForeignKey('TimeSlot', on_delete=models.CASCADE, null=True)
+    center = models.ForeignKey('PollingCenter', on_delete=models.CASCADE, null=True)
     
     def __str__(self):
         return f'{self.profile} - {self.id}' 
 
+class Staff(models.Model):
+    profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)                 #Connected to a single registered user
+    # id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
+    center = models.ForeignKey('PollingCenter', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.profile.first_name
+
 
 class Vote(models.Model):
     voter = models.ForeignKey('Voter', on_delete=models.CASCADE)                           
-    vote_id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
+    id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
+    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f'{self.voter} - {self.vote_id}' 
     
+
+class Ticket(models.Model):
+    voter = models.ForeignKey('Voter', on_delete=models.CASCADE, related_name='voter')                           
+    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
+    id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
+
+    def __str__(self):
+        return f'{self.voter} - {self.vote_id}' 
+    
+class TimeSlot(models.Model):                         
+    id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
+    start = models.TimeField()
+    stop = models.TimeField()
+    voters = models.ManyToManyField('Voter', related_name='voters')  
+
+    def __str__(self):
+        return f'{self.start} - {self.stop}' 

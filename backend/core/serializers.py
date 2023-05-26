@@ -78,19 +78,40 @@ class PollingCenterSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
 class PollingStationSerializer(serializers.ModelSerializer):
     center = PollingCenterSerializer()
-    # voters = VoterSerializer(many=True, read_only=True)
 
     class Meta:
         model = PollingStation
         fields = '__all__'
 
+
+class TicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+
+class StaffSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer()
+    center = PollingCenterSerializer()
+
+    class Meta:
+        model = Staff
+        fields = '__all__'
+
+
+class TimeSlotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TimeSlot
+        fields = '__all__'
+
+
 class VoterSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
-    station = PollingStationSerializer()
-    # queue = QueueSerializer()
+    center = PollingCenterSerializer()
+    ticket = TicketSerializer()
+    timeslot = TimeSlotSerializer()
 
     class Meta:
         model = Voter
