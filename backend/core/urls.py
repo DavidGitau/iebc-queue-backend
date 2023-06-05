@@ -7,6 +7,16 @@ urlpatterns = [
     path('login/', CreateTokenView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('profile/', ProfileAPIView.as_view(), name='profile'),
+    path('register-staff/', StaffRegistrationView.as_view(), name='staff-registration'),
+    
+    path('book-queue/', QueueBooking.as_view(), name='queue-booking'),
+    path('register-queue/', QueueRegistrationView.as_view(), name='queue-registration'),
+    path("queue-detail/", QueueDetailView.as_view(), name="queue-detail"),
+
+    path("center-detail/", CenterDetailView.as_view(), name="center-detail"),
+
+    path("kims-stations/", KimsStationsView.as_view(), name="kims-stations"),
+    path("kims-kit/", KimsView.as_view(), name="kims-kit"),
 
     path('counties/', CountyList.as_view(), name='county-list'),
     path('counties/<int:pk>/', CountyDetail.as_view(), name='county-detail'),

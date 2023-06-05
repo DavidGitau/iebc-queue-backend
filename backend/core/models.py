@@ -47,7 +47,7 @@ class PollingStation(models.Model):
 class Queue(models.Model):
     name = models.CharField(max_length=100)
     station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
-    id = models.IntegerField(primary_key=True)
+    # id = models.IntegerField(primary_key=True)
     tickets = models.ManyToManyField('Ticket', related_name='queues')  # Updated related_name argument
 
     def __str__(self):
@@ -110,20 +110,20 @@ class Staff(models.Model):
 
 class Vote(models.Model):
     voter = models.ForeignKey('Voter', on_delete=models.CASCADE)                           
-    id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
+    # id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
     station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return f'{self.voter} - {self.vote_id}' 
+        return f'{self.voter} - {self.id}' 
     
 
 class Ticket(models.Model):
     voter = models.ForeignKey('Voter', on_delete=models.CASCADE, related_name='voter')                           
     station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
-    id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
+    # id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
 
     def __str__(self):
-        return f'{self.voter} - {self.vote_id}' 
+        return f'{self.voter} - {self.id}' 
     
 class TimeSlot(models.Model):                         
     id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 

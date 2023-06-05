@@ -11,6 +11,9 @@ admin.site.register(
         Ward,
         PollingCenter,
         Constituency,
-        County
+        County,
+        Staff,
+        Ticket,
+        TimeSlot
     ]
 )

@@ -641,7 +641,7 @@ from myapp.models import UserProfile  # Replace 'myapp' with the actual name of 
 
 from random import sample
 
-def transfer_user_profiles_to_voters(percentage=0.7, voter_limit=100):
+def transfer_user_profiles_to_voters(percentage=0.99, voter_limit=100):
     # Retrieve a percentage of UserProfile objects
     user_profiles = UserProfile.objects.all()
     num_profiles = int(len(user_profiles) * percentage)
