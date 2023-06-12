@@ -639,26 +639,68 @@ from myapp.models import UserProfile  # Replace 'myapp' with the actual name of 
 #         print(first_name,last_name,id_number,age)
 
 
-from random import sample
+# from random import sample
 
-def transfer_user_profiles_to_voters(percentage=0.99, voter_limit=100):
-    # Retrieve a percentage of UserProfile objects
-    user_profiles = UserProfile.objects.all()
-    num_profiles = int(len(user_profiles) * percentage)
-    selected_user_profiles = sample(list(user_profiles), num_profiles)
+# def transfer_user_profiles_to_voters(percentage=0.99, voter_limit=100):
+#     # Retrieve a percentage of UserProfile objects
+#     user_profiles = UserProfile.objects.all()
+#     num_profiles = int(len(user_profiles) * percentage)
+#     selected_user_profiles = sample(list(user_profiles), num_profiles)
 
-    # Retrieve the first polling stations with available slots
-    polling_stations = PollingStation.objects.all()
-    available_stations = polling_stations.filter(voter_no__lt=voter_limit)[:num_profiles]
+#     # Retrieve the first polling stations with available slots
+#     polling_stations = PollingStation.objects.all()
+#     available_stations = polling_stations.filter(voter_no__lt=voter_limit)[:num_profiles]
 
-    # Iterate over selected UserProfiles and assign them to polling stations
-    for i, user_profile in enumerate(selected_user_profiles):
-        if i >= len(available_stations):
-            break  # Stop assigning if there are no more available stations
+#     # Iterate over selected UserProfiles and assign them to polling stations
+#     for i, user_profile in enumerate(selected_user_profiles):
+#         if i >= len(available_stations):
+#             break  # Stop assigning if there are no more available stations
 
-        # Create a Voter instance and assign it to the selected polling station
-        polling_station = available_stations[i]
-        voter = Voter.objects.create(profile=user_profile, station=polling_station)
-        polling_station.voters.add(voter)
-        polling_station.voter_no += 1
-        polling_station.save()
+#         # Create a Voter instance and assign it to the selected polling station
+#         polling_station = available_stations[i]
+#         voter = Voter.objects.create(profile=user_profile, station=polling_station)
+#         polling_station.voters.add(voter)
+#         polling_station.voter_no += 1
+#         polling_station.save()
+
+# from django.contrib.auth.models import User
+# from yourapp.models import UserProfile, Voter
+
+# def ppp():
+#     # Get all UserProfiles that are not registered as voters
+#     user_profiles = UserProfile.objects.all()
+
+#     for profile in user_profiles:
+#         try: 
+#             voter = Voter.objects.get(profile=profile)
+#         except:
+#             # Create a Voter instance for the UserProfile
+#             voter = Voter.objects.create(
+#                 profile=profile,
+#                 id=profile.id_number,
+#                 # Set other fields as needed
+#             )         
+
+#             print(f"Added Voter: {voter}")
+
+#     print("Voter creation completed.")
+
+# # Run the script
+# add_voters_from_userprofiles()
+
+def ppp():
+    polling_centers = PollingCenter.objects.all()
+
+    for center in polling_centers:
+        stations = PollingStation.objects.filter(center=center)
+        if len(stations) > 5:
+            added_voters = Voter.objects.filter(center__isnull=True)[:500]
+
+            for voter in added_voters:
+                # Create a Voter instance and associate it with the center
+                voter.center=center
+                voter.save()
+                print(f"Added Voter {voter} to Polling Center {center}")
+
+    print("Voter addition to polling centers completed.")
+

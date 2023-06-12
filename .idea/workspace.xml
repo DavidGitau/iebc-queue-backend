@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="7bb08bbc-a18e-4627-b52c-fd2faf7e1265" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/backend/backend/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/backend/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/core/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/core/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/core/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/core/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/core/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/core/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/core/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/core/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/etc/scripts.py" beforeDir="false" afterPath="$PROJECT_DIR$/etc/scripts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend" beforeDir="false" afterPath="$PROJECT_DIR$/frontend" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Login/Login.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Login/Login.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Login/LoginForm.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Login/LoginForm.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Login/RegisterForm.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Login/RegisterForm.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Queue/ConsituencyList.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Station/StationList.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Station/StationList.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Voter/Voter.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Voter/Voter.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Voter/VoterList.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Voter/VoterList.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Ward/WardList.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Ward/WardList.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/common/Header.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/common/Header.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/pages/AdminProfile.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/pages/AdminProfile.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/pages/Dashboard.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/pages/Dashboard.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/pages/UserProfile.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/pages/UserProfile.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile/iebc" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/iebc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile/iebc/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/iebc/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile/iebc/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/iebc/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile/iebc/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile/iebc/package.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="2QYIZoMCFsUe4k2PRqAQzROeM27" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "cidr.known.project.marker": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "last_opened_file_path": "D:/Projects/2023/iebc/mobile/flutter",
+    "show.migrate.to.gradle.popup": "false"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="7bb08bbc-a18e-4627-b52c-fd2faf7e1265" name="Changes" comment="" />
+      <created>1685524178339</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1685524178339</updated>
+    </task>
+    <servers />
+  </component>
+</project>

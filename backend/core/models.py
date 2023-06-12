@@ -29,6 +29,7 @@ class PollingCenter(models.Model):
     id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
     name = models.CharField(max_length=100)                                                  #The list of voters registered in the station
     ward = models.ForeignKey(Ward, on_delete=models.CASCADE, null=True)                                                #Ward
+    voter_no = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -58,9 +59,7 @@ class Queue(models.Model):
 class UserProfile(models.Model):
     # Choices
     CONDITION = (
-        ("E", "Expectant/Mothers"),
-        ("S", "Sick"),
-        ("D", "Disabled"),
+        ("S", "Special"),
         ("N", "None"),
     )
     GENDER = (
@@ -68,7 +67,8 @@ class UserProfile(models.Model):
         ("F", "Female"),
     )
     OCCUPATION = (
-        ("C", "Casual"),
+        ("CH", "Casual Hard"),
+        ("CS", "Casual Soft"),
         ("F", "Formal"),
     )
 
@@ -79,7 +79,7 @@ class UserProfile(models.Model):
     gender = models.CharField('gender', max_length=1, choices=GENDER)                       #Gender 
     id_number = models.IntegerField(primary_key=True)                                       #The national ID number used as the primary key 
     last_name = models.CharField(max_length=50)                                             #Last name
-    occupation = models.CharField('occupation', max_length=1, choices=OCCUPATION, null=True)           #The occupation of user - casual or formal
+    occupation = models.CharField('occupation', max_length=2, choices=OCCUPATION, null=True)           #The occupation of user - casual or formal
     special_condition = models.CharField('condition', max_length=1, choices=CONDITION, null=True)      #Any special condition such as expectant mothers
     user = models.OneToOneField(User, on_delete=models.CASCADE)                             #Used for authetication - django user model
 
@@ -88,7 +88,7 @@ class UserProfile(models.Model):
 
 
 class Voter(models.Model):
-    profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)                 #Connected to a single registered user
+    profile = models.ForeignKey('UserProfile', on_delete=models.CASCADE)                 #Connected to a single registered user
     id = models.IntegerField(primary_key=True)                                        #The voter ID number used as the primary key 
     service_time = models.FloatField(default=0.00)                                          #Predicted service time
     ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE, null=True, related_name='ticket')                                 #Queue Ticket number

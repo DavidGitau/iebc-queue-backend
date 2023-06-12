@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import logout
+from django.db.models import Sum
 from .models import *
 from .serializers import *
 # from rest_framework.views import APIView
@@ -14,6 +15,96 @@ from .serializers import *
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 # from .serializers import StaffRegistrationSerializer
+
+from django.db.models import Sum, F
+import random
+
+
+class DisallocateTimeslotsView(APIView):
+    queryset = Voter.objects.all()
+    serializer_class = VoterSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        cid = request.data['cid']
+        try:
+            center = PollingCenter.objects.get(id=cid)
+            voters = Voter.objects.filter(center=center)
+            for voter in voters:
+                voter.timeslot = None
+                voter.save()
+
+        except PollingCenter.DoesNotExist:
+            return Response({'error': 'Center not found!'}, status=404)
+
+
+class AllocateTimeslotsView(APIView):
+    queryset = Voter.objects.all()
+    serializer_class = VoterSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        cid = request.data['cid']
+        try:
+            center = PollingCenter.objects.get(id=cid)
+            while True:
+            # Find voters in the center without timeslots
+                voters_without_timeslots = Voter.objects.filter(center=center, timeslot=None)
+                if len(voters_without_timeslots) == 0:
+                    break
+                # Shuffle the voters
+                shuffled_voters = list(voters_without_timeslots)
+                random.shuffle(shuffled_voters)
+
+                # Get all available timeslots sorted by id
+                timeslots = TimeSlot.objects.all().order_by('id')
+
+                # Randomly allocate timeslots to voters while ensuring service times do not exceed 60
+                allocated_voters = []
+                total_service_time = 0
+
+                for voter in shuffled_voters:
+                    if not timeslots.exists():
+                        break
+
+                    # Randomly select a timeslot
+                    selected_timeslot = timeslots.first()
+                    total_time = Voter.objects.filter(timeslot=selected_timeslot, center=voter.center).aggregate(total_time=Sum('service_time'))['total_time']
+
+                    try:
+                        if total_time >= 60:
+                            continue
+                    except:
+                        pass
+
+                    # Calculate the voter's service time
+                    service_time = voter.service_time
+
+                    # Check if adding the service time exceeds the limit
+                    if total_service_time + service_time > 60:
+                        break
+
+                    # Assign the timeslot to the voter
+                    voter.timeslot = selected_timeslot
+                    voter.save()
+
+                    # Update total service time
+                    total_service_time += service_time
+
+                    allocated_voters.append(voter)
+                    timeslots = timeslots.exclude(id=selected_timeslot.id)
+
+            # Serialize the allocated voters
+            # serializer = VoterSerializer(allocated_voters, many=True)
+            return Response()
+
+        except PollingCenter.DoesNotExist:
+            return Response({'error': 'Center not found!'}, status=404)
+
+
+
 
 class QueueDetailView(APIView):
     queryset = Queue.objects.all()
@@ -26,9 +117,9 @@ class QueueDetailView(APIView):
         try:
             c = PollingCenter.objects.get(id=cid)
             try:
-                s = PollingStation.objects.filter(center=c)[0]
-                q = Queue.objects.get(station=s)
-                serializer = QueueSerializer(q)
+                # s = PollingStation.objects.filter(center=c)
+                q = Queue.objects.filter(station__center=c)
+                serializer = QueueSerializer(q, many=True)
                 return Response(serializer.data)
             except:
                 return Response({'error': f'Queue for {c.name} not found!'}, status=404)
@@ -135,6 +226,7 @@ class QueueRegistrationView(APIView):
         except:
             return Response({'error': f'Voter not found! Ensure you are a registered voter! '}, status=404)
 
+
 class QueueBooking(APIView):
     queryset = Voter.objects.all()
     serializer_class = VoterSerializer
@@ -147,8 +239,22 @@ class QueueBooking(APIView):
         timeslot = TimeSlot.objects.get(id=tid)
         voter = Voter.objects.get(id=vid)
         voter.timeslot = timeslot
+
+        # Calculate the total service time for voters in the same timeslot and center
+        total_service_time = Voter.objects.filter(timeslot=timeslot, center=voter.center).aggregate(total_time=Sum('service_time'))['total_time']
+        if total_service_time is None:
+            total_service_time = 0.0
+
+        # Check if adding the service time of the current voter exceeds 60
+        if total_service_time + voter.service_time > 60:
+            # Handle the case when the total service time exceeds 60 (e.g., return an error response)
+            return Response({"error": "Timeslot already full!"})
+
+        # Save the changes to the voter
         voter.save()
-        return Response()
+
+        return Response({"success": f"Booking for {timeslot} sucessful"})
+
         
 
 class StaffRegistrationView(APIView):
@@ -209,7 +315,9 @@ class CreateTokenView(ObtainAuthToken):
         
         try:
             # Check the user's account type
+            print(request.data)
             serializer = self.serializer_class(data=request.data)
+            print(serializer)
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)

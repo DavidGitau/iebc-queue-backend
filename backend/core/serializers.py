@@ -146,22 +146,22 @@ class TimeSlotSerializer(serializers.ModelSerializer):
         model = TimeSlot
         fields = '__all__'
 
-class TicketSerializer(serializers.ModelSerializer):
-    station = PollingStationSerializer()
-    # voter = VoterSerializer()
-    class Meta:
-        model = Ticket
-        fields = '__all__'
-
 
 class VoterSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
     center = PollingCenterSerializer()
-    ticket = TicketSerializer()
+    # ticket = TicketSerializer()
     timeslot = TimeSlotSerializer()
 
     class Meta:
         model = Voter
+        fields = '__all__'
+
+class TicketSerializer(serializers.ModelSerializer):
+    station = PollingStationSerializer()
+    voter = VoterSerializer()
+    class Meta:
+        model = Ticket
         fields = '__all__'
 
 class QueueSerializer(serializers.ModelSerializer):

@@ -14,6 +14,8 @@ urlpatterns = [
     path("queue-detail/", QueueDetailView.as_view(), name="queue-detail"),
 
     path("center-detail/", CenterDetailView.as_view(), name="center-detail"),
+    path("allocate-timeslots/", AllocateTimeslotsView.as_view(), name="allocate-timeslots"),
+    path("disallocate-timeslots/", DisallocateTimeslotsView.as_view(), name="disallocate-timeslots"),
 
     path("kims-stations/", KimsStationsView.as_view(), name="kims-stations"),
     path("kims-kit/", KimsView.as_view(), name="kims-kit"),
