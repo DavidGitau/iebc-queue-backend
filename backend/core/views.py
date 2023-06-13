@@ -173,27 +173,45 @@ class KimsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        vid = request.data['id']
+        # vid = request.data['id']
         sid = request.data['sid']
-        voter = Voter.objects.get(profile__id_number=vid)
-        print(voter)
+        queue = Queue.objects.get(station__id=int(sid))
+        # voter = Voter.objects.get(profile__id_number=vid)
         try:
-            ticket  = voter.ticket
-            if int(ticket.station.id) == int(sid):
-                q = Queue.objects.get(station=ticket.station)
-                if ticket in q.tickets.all():
-                    q.tickets.remove(ticket)
-                    q.save()
-                    voter.voted = True
-                    voter.save()
-                    Vote.objects.create(voter=voter, station=ticket.station)
-                    return Response()
+            ticket = queue.tickets.all()[0]
+            voter = ticket.voter
+            # print(voter)
+            try:
+                # ticket  = voter.ticket
+                if int(ticket.station.id) == int(sid):
+                    q = Queue.objects.get(station=ticket.station)
+                    if ticket in q.tickets.all():
+                        # q.tickets.remove(ticket)
+                        qw = q.waiting_time - voter.service_time
+                        q.waiting_time = qw
+                        if q.waiting_time < 0.10:
+                            q.waiting_time = 0.00
+                        ticket.delete()
+                        # print('iiiiii')
+                        q.save()
+                        # print('iiiiii')
+                        try:
+                            voter.voted = True
+                            print('iiiiii', voter)
+                            # voter.save()
+                            # Vote.objects.create(voter=voter, station=ticket.station)
+                            print('iiiiii')
+                            return Response({'success': f'Ticket {ticket.id} {voter.profile.first_name} {voter.profile.last_name} - {voter.profile.id_number} has casted their vote!'}, status=200)
+                        except Exception as e:
+                            raise e
+                    else:
+                        return Response({'error': f'Already voter has casted their vote!'}, status=404)
                 else:
-                    return Response({'error': f'Already voter has casted their vote!'}, status=404)
-            else:
-                return Response({'error': f'Wrong station. Please proceed to {ticket.station.name} {ticket.station.id}'}, status=404)
+                    return Response({'error': f'Wrong station. Please proceed to {ticket.station.name} {ticket.station.id}'}, status=404)
+            except:
+                return Response({'error': f'Register to queue first! Ticket not found!'}, status=404)
         except:
-            return Response({'error': f'Register to queue first! Ticket not found!'}, status=404)
+            return Response({'error': f'Queue Empty!'}, status=404)
 
 class QueueRegistrationView(APIView):
     queryset = Voter.objects.all()
@@ -206,21 +224,27 @@ class QueueRegistrationView(APIView):
         cid = request.data['cid']
         try:
             voter = Voter.objects.get(profile__id_number=vid)
+            print(voter)
             center  = voter.center
             if center.id == int(cid):
                 try: 
                     t = Ticket.objects.get(voter=voter)
                     return Response({'error': f'Voter has a ticket already - number {t.id}'}, status=404)
                 except:
-                    s = PollingStation.objects.filter(center=center)[0]
-                    ticket = Ticket.objects.create(voter=voter,station=s)
-                    q = Queue.objects.get(station=s)
+                    s = PollingStation.objects.filter(center=center)
+                    queues = Queue.objects.filter(station__in=s).order_by('waiting_time')
+                    q = queues.first() if queues.exists() else None
+                    # total_service_time = sum(ticket.voter.service_time for ticket in q.tickets.all())
+                    total_service_time = q.waiting_time
+                    # ticket = 
+                    ticket = Ticket.objects.create(voter=voter,station=q.station, waiting_time=total_service_time)
+                    # ticket.save()
                     q.tickets.add(ticket)
+                    q.waiting_time = total_service_time + voter.service_time
                     q.save()
-                    print(q.tickets.all())
                     voter.ticket = ticket
                     voter.save()
-                    return Response()
+                    return Response({'success': f'Ticket {ticket.id} for {voter.profile.first_name} {voter.profile.last_name} generated successfully'}, status=200)
             else:
                 return Response({'error': f'Voter not found in this center! Proceed to {center.name} '}, status=404)
         except:

@@ -49,6 +49,7 @@ class Queue(models.Model):
     name = models.CharField(max_length=100)
     station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
     # id = models.IntegerField(primary_key=True)
+    waiting_time = models.FloatField(default=0.00)
     tickets = models.ManyToManyField('Ticket', related_name='queues')  # Updated related_name argument
 
     def __str__(self):
@@ -120,6 +121,7 @@ class Vote(models.Model):
 class Ticket(models.Model):
     voter = models.ForeignKey('Voter', on_delete=models.CASCADE, related_name='voter')                           
     station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
+    waiting_time = models.FloatField(default=0.00)  
     # id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
 
     def __str__(self):
