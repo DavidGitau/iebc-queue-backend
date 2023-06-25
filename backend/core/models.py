@@ -12,7 +12,7 @@ class County(models.Model):
 class Constituency(models.Model):
     id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
     name = models.CharField(max_length=100)                                                 #The name of polling station
-    county = models.ForeignKey(County, on_delete=models.CASCADE, null=True)
+    county = models.ForeignKey(County, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -20,7 +20,7 @@ class Constituency(models.Model):
 class Ward(models.Model):
     id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
     name = models.CharField(max_length=100)                                                 #The name of polling station
-    constituency = models.ForeignKey(Constituency, on_delete=models.CASCADE, null=True)                                        #Constituency
+    constituency = models.ForeignKey(Constituency, on_delete=models.SET_NULL, null=True)                                        #Constituency
 
     def __str__(self):
         return self.name
@@ -28,7 +28,7 @@ class Ward(models.Model):
 class PollingCenter(models.Model):
     id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
     name = models.CharField(max_length=100)                                                  #The list of voters registered in the station
-    ward = models.ForeignKey(Ward, on_delete=models.CASCADE, null=True)                                                #Ward
+    ward = models.ForeignKey(Ward, on_delete=models.SET_NULL, null=True)                                                #Ward
     voter_no = models.IntegerField(default=0)
 
     def __str__(self):
@@ -37,7 +37,7 @@ class PollingCenter(models.Model):
 class PollingStation(models.Model):
     id = models.CharField(max_length=50, primary_key=True)                                      #The ID of the station as primary key
     name = models.CharField(max_length=100)                                                #The list of voters registered in the station
-    center = models.ForeignKey(PollingCenter, on_delete=models.CASCADE, null=True)                                                #Ward    
+    center = models.ForeignKey(PollingCenter, on_delete=models.SET_NULL, null=True)                                                #Ward    
     voters = models.ManyToManyField('Voter')                                                #The list of voters registered in the station
     voter_no = models.IntegerField(default=1)
 
@@ -47,9 +47,10 @@ class PollingStation(models.Model):
 
 class Queue(models.Model):
     name = models.CharField(max_length=100)
-    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
+    station = models.ForeignKey('PollingStation', on_delete=models.SET_NULL, null=True)
     # id = models.IntegerField(primary_key=True)
     waiting_time = models.FloatField(default=0.00)
+    current_voter_st = models.FloatField(default=0.00)
     tickets = models.ManyToManyField('Ticket', related_name='queues')  # Updated related_name argument
 
     def __str__(self):
@@ -82,55 +83,54 @@ class UserProfile(models.Model):
     last_name = models.CharField(max_length=50)                                             #Last name
     occupation = models.CharField('occupation', max_length=2, choices=OCCUPATION, null=True)           #The occupation of user - casual or formal
     special_condition = models.CharField('condition', max_length=1, choices=CONDITION, null=True)      #Any special condition such as expectant mothers
-    user = models.OneToOneField(User, on_delete=models.CASCADE)                             #Used for authetication - django user model
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)                             #Used for authetication - django user model
 
     def __str__(self):
         return f'{self.first_name} {self.last_name} - {self.id_number}'                     #Return full names with ID number
 
 
 class Voter(models.Model):
-    profile = models.ForeignKey('UserProfile', on_delete=models.CASCADE)                 #Connected to a single registered user
+    profile = models.ForeignKey('UserProfile', on_delete=models.SET_NULL, null=True)                 #Connected to a single registered user
     id = models.IntegerField(primary_key=True)                                        #The voter ID number used as the primary key 
     service_time = models.FloatField(default=0.00)                                          #Predicted service time
-    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE, null=True, related_name='ticket')                                 #Queue Ticket number
+    ticket = models.ForeignKey('Ticket', on_delete=models.SET_NULL, null=True, related_name='ticket')                                 #Queue Ticket number
     voted = models.BooleanField(default=False)                                              #Has voted or not. True or False
-    timeslot = models.ForeignKey('TimeSlot', on_delete=models.CASCADE, null=True)
-    center = models.ForeignKey('PollingCenter', on_delete=models.CASCADE, null=True)
+    timeslot = models.ForeignKey('TimeSlot', on_delete=models.SET_NULL, null=True)
+    center = models.ForeignKey('PollingCenter', on_delete=models.SET_NULL, null=True)
     
     def __str__(self):
         return f'{self.profile} - {self.id}' 
 
 class Staff(models.Model):
-    profile = models.OneToOneField('UserProfile', on_delete=models.CASCADE)                 #Connected to a single registered user
+    profile = models.OneToOneField('UserProfile', on_delete=models.SET_NULL, null=True)                 #Connected to a single registered user
     # id = models.IntegerField(primary_key=True)                                      #The ID of the station as primary key
-    center = models.ForeignKey('PollingCenter', on_delete=models.CASCADE)
+    center = models.ForeignKey('PollingCenter', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.profile.first_name
 
 
 class Vote(models.Model):
-    voter = models.ForeignKey('Voter', on_delete=models.CASCADE)                           
+    voter = models.ForeignKey('Voter', on_delete=models.SET_NULL, null=True)                           
     # id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
-    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
+    station = models.ForeignKey('PollingStation', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f'{self.voter} - {self.id}' 
 
-class TicketType(models.Model):
+
+class Ticket(models.Model):
+    voter = models.ForeignKey('Voter', on_delete=models.SET_NULL, related_name='voter', null=True)                           
+    station = models.ForeignKey('PollingStation', on_delete=models.SET_NULL, null=True)
+    queue_number = models.IntegerField(default=1)
+    priority = models.IntegerField(default=1)
+    waiting_time = models.FloatField(default=0.00)
     CONDITION = (
         ("S", "Special"),
         ("A", "On Time"),
         ("B", "Out of Time"),
     )
     type = models.CharField('condition', max_length=1, choices=CONDITION)
-
-
-class Ticket(models.Model):
-    voter = models.ForeignKey('Voter', on_delete=models.CASCADE, related_name='voter')                           
-    station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
-    waiting_time = models.FloatField(default=0.00)
-    type = models.ForeignKey(TicketType, on_delete=models.CASCADE)  
     # id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
 
     def __str__(self):

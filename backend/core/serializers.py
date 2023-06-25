@@ -157,15 +157,10 @@ class VoterSerializer(serializers.ModelSerializer):
         model = Voter
         fields = '__all__'
 
-class TicketTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TicketType
-        fields = '__all__'
 
 class TicketSerializer(serializers.ModelSerializer):
     station = PollingStationSerializer()
     voter = VoterSerializer()
-    type = TicketTypeSerializer()
     
     class Meta:
         model = Ticket

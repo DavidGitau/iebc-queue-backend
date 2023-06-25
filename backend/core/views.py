@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import logout
-from django.db.models import Sum
 from .models import *
 from .serializers import *
 # from rest_framework.views import APIView
@@ -16,8 +15,38 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 # from .serializers import StaffRegistrationSerializer
 
-from django.db.models import Sum, F
 import random
+import datetime
+from django.db.models import F, Case, When, IntegerField, Value, Sum, ExpressionWrapper, DecimalField
+from decimal import Decimal, ROUND_DOWN
+
+def re_render_queue(q):
+    # Recalculate the queue priority for all tickets in the queue
+    priority_expression = Case(
+        When(type='S', then=Value(1)),
+        When(type='A', then=Value(2)),
+        default=Value(3),
+        output_field=IntegerField(),
+    )
+    q.tickets.update(priority=priority_expression)
+
+    # Reassign ticket numbers based on the recalculated priority and earlier ID for the same priority
+    tickets = q.tickets.order_by('priority', 'id')
+    waiting_time = Decimal(0).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
+    previous_service_time = Decimal(q.current_voter_st).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
+
+    for index, ticket in enumerate(tickets):
+        ticket.queue_number = index + 1
+        waiting_time = waiting_time + previous_service_time
+        ticket.waiting_time = waiting_time.quantize(Decimal('0.00'), rounding=ROUND_DOWN)
+        ticket.save()
+
+        # Update the waiting time for the next ticket
+        previous_service_time = Decimal(ticket.voter.service_time).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
+
+    wt = Decimal(q.tickets.aggregate(total_time=Sum('voter__service_time'))['total_time'] or 0)
+    q.waiting_time = (wt + Decimal(q.current_voter_st)).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
+    q.save()
 
 
 class DisallocateTimeslotsView(APIView):
@@ -178,7 +207,7 @@ class KimsView(APIView):
         queue = Queue.objects.get(station__id=int(sid))
         # voter = Voter.objects.get(profile__id_number=vid)
         try:
-            ticket = queue.tickets.all()[0]
+            ticket = queue.tickets.order_by('queue_number')[0]
             voter = ticket.voter
             # print(voter)
             try:
@@ -189,17 +218,18 @@ class KimsView(APIView):
                         # q.tickets.remove(ticket)
                         qw = q.waiting_time - voter.service_time
                         q.waiting_time = qw
+                        q.current_voter_st = voter.service_time
                         if q.waiting_time < 0.10:
                             q.waiting_time = 0.00
                         ticket.delete()
-                        # print('iiiiii')
                         q.save()
+                        re_render_queue(q)
                         # print('iiiiii')
                         try:
                             voter.voted = True
                             print('iiiiii', voter)
-                            # voter.save()
-                            # Vote.objects.create(voter=voter, station=ticket.station)
+                            Vote.objects.create(voter=voter, station=ticket.station)
+                            voter.save()
                             print('iiiiii')
                             return Response({'success': f'Ticket {ticket.id} {voter.profile.first_name} {voter.profile.last_name} - {voter.profile.id_number} has casted their vote!'}, status=200)
                         except Exception as e:
@@ -213,6 +243,7 @@ class KimsView(APIView):
         except:
             return Response({'error': f'Queue Empty!'}, status=404)
 
+
 class QueueRegistrationView(APIView):
     queryset = Voter.objects.all()
     serializer_class = VoterSerializer
@@ -225,31 +256,49 @@ class QueueRegistrationView(APIView):
         sp = request.data['special']
         try:
             voter = Voter.objects.get(profile__id_number=vid)
-            center  = voter.center
-            print(voter, center.id, cid)
+            center = voter.center
+            print(voter, center.id, cid, sp)
             if center.id == int(cid):
-                try: 
-                    t = Ticket.objects.get(voter=voter)
-                    return Response({'error': f'Voter has a ticket already - number {t.id}'}, status=404)
-                except:
-                    s = PollingStation.objects.filter(center=center)
-                    queues = Queue.objects.filter(station__in=s).order_by('waiting_time')
-                    q = queues.first() if queues.exists() else None
-                    # total_service_time = sum(ticket.voter.service_time for ticket in q.tickets.all())
-                    total_service_time = q.waiting_time
-                    # ticket = 
-                    ticket = Ticket.objects.create(voter=voter,station=q.station, waiting_time=total_service_time)
-                    # ticket.save()
-                    q.tickets.add(ticket)
-                    q.waiting_time = total_service_time + voter.service_time
-                    q.save()
-                    voter.ticket = ticket
-                    voter.save()
-                    return Response({'success': f'Ticket {ticket.id} for {voter.profile.first_name} {voter.profile.last_name} generated successfully'}, status=200)
+                try:
+                    try:
+                        t = Ticket.objects.get(voter=voter)
+                        return Response({'error': f'Voter has a ticket already - number {t.id}'}, status=404)
+                    except:
+                        s = PollingStation.objects.filter(center=center)
+                        queues = Queue.objects.filter(station__in=s)
+                        for q in queues:
+                            q.waiting_time = Decimal(q.tickets.aggregate(total_time=Sum('voter__service_time'))['total_time'] or 0)
+                            q.save()
+                        q1 = queues.order_by('waiting_time')
+                        q = q1.first() if queues.exists() else None
+                        total_service_time = q.waiting_time
+
+                        current_time = datetime.datetime.now().time()
+                        ticket_type = 'S' if sp else ('A' if voter.timeslot is not None and (voter.timeslot.start <= current_time <= voter.timeslot.stop) else 'B')
+                        ticket = Ticket.objects.create(
+                            voter=voter,
+                            station=q.station,
+                            waiting_time=total_service_time,
+                            type=ticket_type,
+                            queue_number=1,
+                        )
+                        q.tickets.add(ticket)
+
+                        re_render_queue(q)
+                        q.save()
+
+                        voter.ticket = ticket
+                        voter.save()
+
+                        return Response({'success': f'Ticket {voter.ticket.id} for {voter.profile.first_name} {voter.profile.last_name} generated successfully'}, status=200)
+                except Exception as e:
+                    print(e)
+                    return Response({'error': f'{e} '}, status=404)
             else:
                 return Response({'error': f'Voter not found in this center! Proceed to {center.name} '}, status=404)
         except:
             return Response({'error': f'Voter not found! Ensure you are a registered voter! '}, status=404)
+
 
 
 class QueueBooking(APIView):
