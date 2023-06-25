@@ -222,10 +222,11 @@ class QueueRegistrationView(APIView):
     def post(self, request):
         vid = request.data['id']
         cid = request.data['cid']
+        sp = request.data['special']
         try:
             voter = Voter.objects.get(profile__id_number=vid)
-            print(voter)
             center  = voter.center
+            print(voter, center.id, cid)
             if center.id == int(cid):
                 try: 
                     t = Ticket.objects.get(voter=voter)

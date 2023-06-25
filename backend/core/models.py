@@ -116,12 +116,21 @@ class Vote(models.Model):
 
     def __str__(self):
         return f'{self.voter} - {self.id}' 
-    
+
+class TicketType(models.Model):
+    CONDITION = (
+        ("S", "Special"),
+        ("A", "On Time"),
+        ("B", "Out of Time"),
+    )
+    type = models.CharField('condition', max_length=1, choices=CONDITION)
+
 
 class Ticket(models.Model):
     voter = models.ForeignKey('Voter', on_delete=models.CASCADE, related_name='voter')                           
     station = models.ForeignKey('PollingStation', on_delete=models.CASCADE, null=True)
-    waiting_time = models.FloatField(default=0.00)  
+    waiting_time = models.FloatField(default=0.00)
+    type = models.ForeignKey(TicketType, on_delete=models.CASCADE)  
     # id = models.IntegerField(primary_key=True)                                         #The voter ID number used as the primary key 
 
     def __str__(self):

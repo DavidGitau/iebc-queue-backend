@@ -148,10 +148,12 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
     f"http://{socket.gethostbyname(socket.gethostname())}:3000",
 ]
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
     # Add other trusted origins if needed
     f"http://{socket.gethostbyname(socket.gethostname())}:3000",
 ]
