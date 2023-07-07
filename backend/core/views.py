@@ -5,7 +5,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import logout
 from .models import *
 from .serializers import *
@@ -63,10 +63,9 @@ class DisallocateTimeslotsView(APIView):
             for voter in voters:
                 voter.timeslot = None
                 voter.save()
-
+            return Response()
         except PollingCenter.DoesNotExist:
             return Response({'error': 'Center not found!'}, status=404)
-
 
 class AllocateTimeslotsView(APIView):
     queryset = Voter.objects.all()
@@ -79,55 +78,61 @@ class AllocateTimeslotsView(APIView):
         try:
             center = PollingCenter.objects.get(id=cid)
             while True:
-            # Find voters in the center without timeslots
+                # Find voters in the center without timeslots
                 voters_without_timeslots = Voter.objects.filter(center=center, timeslot=None)
                 if len(voters_without_timeslots) == 0:
-                    break
+                    pass
                 # Shuffle the voters
                 shuffled_voters = list(voters_without_timeslots)
                 random.shuffle(shuffled_voters)
 
                 # Get all available timeslots sorted by id
-                timeslots = TimeSlot.objects.all().order_by('id')
+                timeslots = list(TimeSlot.objects.all().order_by('id')[:5])
+                try:
+                    # Randomly allocate timeslots to voters while ensuring service times do not exceed 60
+                    allocated_voters = []
+                    total_service_time = 0
 
-                # Randomly allocate timeslots to voters while ensuring service times do not exceed 60
-                allocated_voters = []
-                total_service_time = 0
+                    for voter in shuffled_voters:
+                        if not timeslots:
+                            break
 
-                for voter in shuffled_voters:
-                    if not timeslots.exists():
-                        break
+                        # Randomly select a timeslot
+                        selected_timeslot = random.choice(timeslots)
+                        total_time = Voter.objects.filter(timeslot=selected_timeslot, center=voter.center).aggregate(total_time=Sum('service_time'))['total_time']
 
-                    # Randomly select a timeslot
-                    selected_timeslot = timeslots.first()
-                    total_time = Voter.objects.filter(timeslot=selected_timeslot, center=voter.center).aggregate(total_time=Sum('service_time'))['total_time']
+                        try:
+                            if total_time >= 15:
+                                continue
+                        except:
+                            pass
 
-                    try:
-                        if total_time >= 60:
-                            continue
-                    except:
-                        pass
+                        # Calculate the voter's service time
+                        service_time = voter.service_time
 
-                    # Calculate the voter's service time
-                    service_time = voter.service_time
+                        # Check if adding the service time exceeds the limit
+                        if total_service_time + service_time > 15:
+                            break
 
-                    # Check if adding the service time exceeds the limit
-                    if total_service_time + service_time > 60:
-                        break
+                        # Assign the timeslot to the voter
+                        voter.timeslot = selected_timeslot
+                        voter.save()
+                        print(voter, selected_timeslot)
 
-                    # Assign the timeslot to the voter
-                    voter.timeslot = selected_timeslot
-                    voter.save()
+                        # Update total service time
+                        total_service_time += service_time
 
-                    # Update total service time
-                    total_service_time += service_time
-
-                    allocated_voters.append(voter)
-                    timeslots = timeslots.exclude(id=selected_timeslot.id)
+                        allocated_voters.append(voter)
+                        timeslots.remove(selected_timeslot)
+                except Exception as e:
+                    print(e)
 
             # Serialize the allocated voters
             # serializer = VoterSerializer(allocated_voters, many=True)
-            return Response()
+            
+        except PollingCenter.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 
         except PollingCenter.DoesNotExist:
             return Response({'error': 'Center not found!'}, status=404)
@@ -156,24 +161,25 @@ class QueueDetailView(APIView):
             return Response({'error': f'Center not found!'}, status=404)
 
 class CenterDetailView(APIView):
-    queryset = Voter.objects.all()
     serializer_class = VoterSerializer
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
-    def post(self, request):
-        cid = request.data['cid']
+    def get(self, request):
         try:
+            cid = request.GET.get('cid')
             c = PollingCenter.objects.get(id=cid)
-            try:
-                s = Voter.objects.filter(center=c)
+            s = Voter.objects.filter(center=c)
+            if s.exists():
                 serializer = VoterSerializer(s, many=True)
                 return Response(serializer.data)
-            except:
+            else:
                 return Response({'error': f'Voters for {c.name} not found!'}, status=404)
-        except:
-            return Response({'error': f'Center not found!'}, status=404)
-        
+        except PollingCenter.DoesNotExist:
+            return Response({'error': 'Center not found!'}, status=404)
+        except Exception as e:
+            return Response({'error': str(e)}, status=404)
+
 
 class KimsStationsView(APIView):
     queryset = Voter.objects.all()
@@ -227,10 +233,8 @@ class KimsView(APIView):
                         # print('iiiiii')
                         try:
                             voter.voted = True
-                            print('iiiiii', voter)
                             Vote.objects.create(voter=voter, station=ticket.station)
                             voter.save()
-                            print('iiiiii')
                             return Response({'success': f'Ticket {ticket.id} {voter.profile.first_name} {voter.profile.last_name} - {voter.profile.id_number} has casted their vote!'}, status=200)
                         except Exception as e:
                             raise e
@@ -300,7 +304,6 @@ class QueueRegistrationView(APIView):
             return Response({'error': f'Voter not found! Ensure you are a registered voter! '}, status=404)
 
 
-
 class QueueBooking(APIView):
     queryset = Voter.objects.all()
     serializer_class = VoterSerializer
@@ -320,7 +323,7 @@ class QueueBooking(APIView):
             total_service_time = 0.0
 
         # Check if adding the service time of the current voter exceeds 60
-        if total_service_time + voter.service_time > 60:
+        if total_service_time + voter.service_time > 15:
             # Handle the case when the total service time exceeds 60 (e.g., return an error response)
             return Response({"error": "Timeslot already full!"})
 
@@ -416,7 +419,7 @@ class CreateTokenView(ObtainAuthToken):
                     # Perform admin-specific authentication logic
                     profile = UserProfile.objects.get(user=user)
                     voter = Voter.objects.get(profile=profile)
-                    return Response({'token': token.key, 'account_type': 'user', 'voter_id': voter.id})
+                    return Response({'token': token.key, 'account_type': 'user', 'voter_id': voter.id, 'center_id': voter.center.id})
                 else:
                     return Response({'detail': 'Invalid account type - Got voter details'}, status=400)
         except:
@@ -459,7 +462,7 @@ class PollingCenterList(generics.ListCreateAPIView):
 
 
 class PollingCenterDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PollingCenter.objects.all()[:50]
+    queryset = PollingCenter.objects.all()
     serializer_class = PollingCenterSerializer
 
 
@@ -469,7 +472,7 @@ class PollingStationList(generics.ListCreateAPIView):
 
 
 class PollingStationDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = PollingStation.objects.all()[:50]
+    queryset = PollingStation.objects.all()
     serializer_class = PollingStationSerializer
 
 
@@ -514,8 +517,25 @@ class TicketDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TimeSlotList(generics.ListCreateAPIView):
-    queryset = TimeSlot.objects.all()[:50]
     serializer_class = TimeSlotSerializer
+
+    def get_queryset(self):
+        vid = self.request.GET.get('id')
+        voter = Voter.objects.get(id=vid)
+        stations_no = len(PollingStation.objects.filter(center=voter.center))
+        timeslots = TimeSlot.objects.all()
+
+        # Check if each timeslot is full and set the 'full' flag
+        for timeslot in timeslots:
+            total_service_time = Voter.objects.filter(timeslot=timeslot, center=voter.center).aggregate(total_time=Sum('service_time'))['total_time']
+            # print(stations_no,total_service_time)
+            if total_service_time and total_service_time >= 15:
+                timeslot.full = True
+            else:
+                timeslot.full = False
+
+        return timeslots
+
 
 
 class TimeSlotDetail(generics.RetrieveUpdateDestroyAPIView):

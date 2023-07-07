@@ -142,9 +142,14 @@ class StaffSerializer(serializers.ModelSerializer):
 
 
 class TimeSlotSerializer(serializers.ModelSerializer):
+    full = serializers.SerializerMethodField()
+
+    def get_full(self, obj):
+        return getattr(obj, 'full', False)
+
     class Meta:
         model = TimeSlot
-        fields = '__all__'
+        fields = ['id', 'stop', 'start', 'full']
 
 
 class VoterSerializer(serializers.ModelSerializer):
